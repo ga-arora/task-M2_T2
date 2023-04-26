@@ -1,0 +1,55 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <omp.h>
+
+using namespace std;
+
+void quicksort(vector<int>& arr, int left, int right) {
+    if (left < right) {
+        int pivot = arr[left];
+        int i = left;
+        int j = right;
+        while (i < j) {
+            while (arr[i] < pivot) {
+                i++;
+            }
+            while (arr[j] > pivot) {
+                j--;
+            }
+            if (i <= j) {
+                swap(arr[i], arr[j]);
+                i++;
+                j--;
+            }
+        }
+        #pragma omp parallel sections
+        {
+            #pragma omp section
+            {
+                quicksort(arr, left, j);
+            }
+            #pragma omp section
+            {
+                quicksort(arr, i, right);
+            }
+        }
+    }
+}
+
+int main() {
+    vector<int> arr = {5, 2, 9, 3, 6, 1, 8, 4, 7};
+    int num_threads = omp_get_max_threads();
+    omp_set_num_threads(num_threads);
+    cout << "Number of threads: " << num_threads << endl;
+    double start_time = omp_get_wtime();
+    quicksort(arr, 0, arr.size() - 1);
+    double end_time = omp_get_wtime();
+    cout << "Sorted array: ";
+    for (int i = 0; i < arr.size(); i++) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+    cout << "Time taken: " << end_time - start_time << " seconds" << endl;
+    return 0;
+}
